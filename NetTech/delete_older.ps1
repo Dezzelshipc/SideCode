@@ -85,8 +85,8 @@ if ($time_parsed.Count -eq 0 -or -$date_diff.Length -ne 0) {
 }
 
 $date_less_to_delete = [datetime]::Now
-for ($i = 0; $i -le $time_parsed.Count; $i += 1) {
-    if ($time_parsed[$i] -match "(?<type>\D+)(?<num>\d+)") {
+foreach ($time_part in $time_parsed) {
+    if ($time_part -match "(?<type>\D+)(?<num>\d+)") {
         $minus_num = -[int]$matches.num
         switch ($matches.type) {
             "Y" { $date_less_to_delete = $date_less_to_delete.AddYears($minus_num) }
