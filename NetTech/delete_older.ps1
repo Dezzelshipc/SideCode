@@ -1,3 +1,8 @@
+param(
+    [switch]$recursive,
+    [switch]$help
+)
+
 function DeleteFile {
     param (
         $path_to_file
@@ -14,14 +19,17 @@ function DeleteDirectory {
 
 function RecursiveDelete {
     param (
-        [string[]]$path_to_dir,
-        [datetime]$date_to_delete
+        [string]$path_to_dir,
+        [datetime]$date_to_delete,
+        [bool]$is_recursive
     )
-
-    foreach($dir in [System.IO.Directory]::GetDirectories($path_to_dir)) {
-        $count_ogj_inside = RecursiveDelete $dir $date_to_delete
-        if ($count_ogj_inside -le 0) {
-            DeleteDirectory $dir
+    
+    if ($is_recursive) {
+        foreach($dir in [System.IO.Directory]::GetDirectories($path_to_dir)) {
+            $count_ogj_inside = RecursiveDelete $dir $date_to_delete $is_recursive
+            if ($count_ogj_inside -le 0) {
+                DeleteDirectory $dir
+            }
         }
     }
     
@@ -30,7 +38,7 @@ function RecursiveDelete {
             DeleteFile $file
         }
     }
-
+    
     $files_in_dir = ([System.IO.Directory]::GetFiles($path_to_dir)).Count
     $subdirs_in_dir = ([System.IO.Directory]::GetDirectories($path_to_dir)).Count
     
@@ -39,12 +47,7 @@ function RecursiveDelete {
 
 
 # Program start
-if ($args.Count -eq 0) {
-    "-help  -- to get help"
-    exit
-}
-
-if ($args[0] -eq "-help") {
+if ($help) {
     "Deletes files that are older than date."
     ""
     "delete_older.ps1 <path> -<time parameter>"
@@ -57,6 +60,14 @@ if ($args[0] -eq "-help") {
     "   <N>   -- number of that time interval"
     "     Any positive integer"
     "   Example: -Y2M3d4H5  -- delete files that are created 2 years, 3 month, 4 days and 5 hours ago or more from current date."
+    ""
+    "Additional params:"
+    "    -recursive  -- also delete from directories inside"
+    exit
+}
+
+if ($args.Count -eq 0) {
+    "-help  -- to get help"
     exit
 }
 
@@ -103,4 +114,4 @@ foreach ($time_part in $time_parsed) {
     }
 }
 
-[void](RecursiveDelete $path_to_delete $date_less_to_delete)
+[void](RecursiveDelete $path_to_delete $date_less_to_delete $recursive)
